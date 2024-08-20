@@ -14,13 +14,7 @@
 
     
       <v-container>
-        <div :style="'width:'+width+'px; position:absolute; bottom:0;'">
-          <v-img
-             height="500"
-             src="@/assets/image_raqed.png"
-          >
-          </v-img>
-        </div>
+        
         
         <div style="position: absolute; top:40%; left:50%;  transform: translate(-50%, -50%);">
           <div class="d-flex mx-auto mt-10" style="width:300px">
@@ -160,5 +154,7 @@
        overlay.value = false;
     })
     ;
+    
   }
+  
 </script>
