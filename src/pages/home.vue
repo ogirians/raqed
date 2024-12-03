@@ -1,16 +1,29 @@
 <template>
     <v-container>
         <div>
+            <!-- <v-btn @click="showAlert()">klik alert</v-btn> -->
             <v-card class="mx-auto mb-5 mt-2" max-width="700">
+                
                 <v-card-title>
-                    <h4>halo, ogy</h4>
+                    <v-row>
+                    <v-col>
+                        <h4>halo, {{ my_data ? my_data.result.name : 'no user'  }}</h4>
+                    </v-col>
+
+                    <v-spacer></v-spacer>
+
+                    <v-col class="d-flex align-end justify-end">
+                        <v-btn density="compact" color="error" @click="log_out_user()">log out</v-btn>
+                    </v-col>
+                    </v-row>
                 </v-card-title>
             </v-card>
             <v-card min-height="200" max-width="700" class="mx-auto mb-5">
                 <v-select
-                :items="['simpp-dev', 'simpp-dev-demo']"
+                :items="['simpp-dev-live', 'simpp-dev-demo']"
                 density="compact"
                 label="Database"
+                v-model = "selected_db"
                 ></v-select>
                 <v-card-title class="text-wrap">
                     <h6>taruh querynya disini (update, delete, insert only)</h6>
@@ -26,7 +39,7 @@
                 ></v-textarea>
                 <v-divider />
                 <div class="d-flex">
-                    <v-btn :disabled="run_loader == true" @click="createTask_Api()" small class="my-3 mr-3 ml-auto" color="primary">
+                    <v-btn :disabled="run_loader == true" @click="showAlert()" small class="my-3 mr-3 ml-auto" color="primary">
                     <v-progress-circular
                         color="white"
                         size="15"
@@ -99,15 +112,34 @@
 import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
 import { computed, ref, reactive } from 'vue'
+import Swal from 'sweetalert2'
+import { useRoute, useRouter } from 'vue-router'
+const router = useRouter()
+
+
+
 
 const store_my_data = useAuthStore(); 
+const my_data =  ref('') ;
+
+onMounted(() => {
+      console.log('Component is mounted');
+    // Perform initialization here, similar to created hook
+    // message.value = 'Hello from onMounted!';
+      my_data.value = store_my_data.my_data;
+      if(my_data.value == ''){
+        console.log('not authenticated');
+        router.push({path:'/'})
+      }
+});
 
 const snackbar = ref(false);
 const result_query = ref('');
 const error_query = ref('');
 const run_loader = ref(false);
 const query_is_ran = ref(false);
-const description = ref('select * from your_heart')
+const description = ref('select * from your_heart');
+const selected_db = ref('simpp-dev-demo')
 
 const action_up = computed(() => {
     let trimed = '';
@@ -160,7 +192,7 @@ const form_createTask = reactive({
         title: title_kb,
         project_id: 59,
         color_id: "amber",
-        column_id: 447,
+        column_id: 603,
         priority : 1 
     }
 })
@@ -189,8 +221,25 @@ function  createTask_Api() {
     }
 }
 
+function showAlert() {
+      // Use sweetalert2
+      Swal.fire({
+        title: "Jalankan Query ini?",
+        text: "tidak dapat dikembalikan!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Run"
+        }).then((result) => {
+        if (result.isConfirmed) {
+            createTask_Api();
+        }
+        });
+}
+
 function runQuery_api(){
-    axios.post('http://localhost:3001',{query : inlineQuery(description.value.trimStart())})
+    axios.post('http://localhost:3001',{query : inlineQuery(description.value.trimStart()),db_select : selected_db.value})
     .then(response => {
         result_query.value=response.data;
         snackbar.value = true;
@@ -213,6 +262,11 @@ function inlineQuery(query) {
     if(query !== '' || query !== null){
         return query.replace(/\s+/g, ' ').trim();
     }
+}
+
+function log_out_user(){
+    store_my_data.destroyData();
+    router.push({path:'/'})
 }
 
 

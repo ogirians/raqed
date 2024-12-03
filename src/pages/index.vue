@@ -114,6 +114,7 @@
   const snackbar = ref(false);
   const myData = ref('');
   const isLogin = ref(false);
+  const token = ref('');
 
   const formAuth= reactive({username : '', password: ''})
   const width = computed(() => {
@@ -131,8 +132,21 @@
     return undefined
   })
 
+  onMounted(() => {
+      console.log('Component is mounted');
+      // Perform initialization here, similar to created hook
+      // message.value = 'Hello from onMounted!';
+      // loadFromLocalStorage();(
+      store_my_data.loadFromLocalStorage();
+      if(store_my_data.my_data){
+        router.push({path:'/home'})
+      }
+    });
+
+
   const formAuthBtoa = computed(() => {
-    return btoa(formAuth.username+':'+formAuth.password);
+    token.value = btoa(formAuth.username+':'+formAuth.password);
+    return token.value
   })
 
   function getLogin(){
@@ -145,6 +159,8 @@
         snackbar.value = true;
         isLogin.value = true;
         store_my_data.my_data = response.data;
+        saveTokenToLocalStorage(token.value);
+        saveMyDataToLocalStorage(JSON.stringify(response.data));
         router.push({path:'/home'})
     })
     .catch(error => {
@@ -152,9 +168,18 @@
        isLogin.value = false;
        snackbar.value = true;
        overlay.value = false;
-    })
-    ;
+    });
     
   }
+
+  function  saveTokenToLocalStorage(data) {
+      localStorage.setItem('raqed_token', data);
+  }
+
+  function  saveMyDataToLocalStorage(data) {
+      localStorage.setItem('my_raqed_data', data);
+  }
+
+
   
 </script>
